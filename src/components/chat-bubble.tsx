@@ -1,16 +1,14 @@
 import { cn } from "@/lib/utils";
-import { Message } from "@/types";
+import { Message } from "@/shared/schema";
 
-export function ChatBubble({
-	message: { text, isOwner },
-}: {
-	message: Message;
-}) {
+export function ChatBubble({ message: { text, type } }: { message: Message }) {
 	return (
 		<div
 			className={cn(
-				"max-w-[60vw] py-2 px-4 rounded-full",
-				isOwner ? "bg-blue-500 text-white" : "bg-muted-foreground/10",
+				"max-w-[60vw] px-4 py-2 rounded-md whitespace-pre-line",
+				type === "USER"
+					? "bg-blue-500 text-white"
+					: "bg-muted-foreground/10",
 			)}
 		>
 			{text}

@@ -3,3 +3,7 @@ export interface Message {
 	text: string;
 	isOwner: boolean;
 }
+
+export type AuthedRequest<T = void> = T & {
+	token: string;
+};
