@@ -15,13 +15,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { getMessages, sendMessage } from "@/controllers/chatbot";
-
-const TOKEN = "";
+import { getToken } from "@/controllers/users";
 
 export function ChatbotPage() {
+	const token = getToken();
+
 	const { isLoading, data, mutate } = useSWR(
 		"messages",
-		async () => await getMessages({ token: TOKEN }),
+		async () => await getMessages({ token }),
 	);
 
 	const [message, setMessage] = useState("");
@@ -31,7 +32,7 @@ export function ChatbotPage() {
 		if (!message.trim().length) return;
 
 		const response = await sendMessage({
-			token: TOKEN,
+			token,
 			message: { text: message },
 		});
 
