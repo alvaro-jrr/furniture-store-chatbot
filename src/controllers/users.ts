@@ -38,19 +38,22 @@ export async function login(credentials: UserCredentials) {
 			body: JSON.stringify(credentials),
 		});
 
-		if (!response.ok) return null;
-
 		const parsedResponse = makeResponseSchema(
-			userSchema.extend({
-				token: z.string(),
-			}),
+			userSchema
+				.extend({
+					token: z.string(),
+				})
+				.optional(),
 		).safeParse(await response.json());
 
 		if (!parsedResponse.success) return null;
 
 		// Store the user token.
-		setToken(parsedResponse.data.data.token);
-		return parsedResponse.data.data;
+		if (parsedResponse.data.data !== undefined) {
+			setToken(parsedResponse.data.data.token);
+		}
+
+		return parsedResponse.data;
 	} catch (error) {
 		console.log("There was an error", error);
 		return null;
@@ -81,8 +84,6 @@ export async function getUser({ token }: { token: string }) {
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		if (!response.ok) return null;
 
 		const parsedResponse = makeResponseSchema(userSchema).safeParse(
 			await response.json(),

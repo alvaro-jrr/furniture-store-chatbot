@@ -6,6 +6,7 @@ import GuestLayout from "@/components/guest-layout";
 import { LoadingPage } from "@/components/loading-page";
 import { TextField } from "@/components/text-field";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 import { login } from "@/controllers/users";
 import { useUser } from "@/hooks/use-user";
 import { UserCredentials, userCredentialsSchema } from "@/shared/schema";
@@ -13,6 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 export function LoginPage() {
 	const { user, mutate, isLoading } = useUser();
+	const { toast } = useToast();
 
 	const {
 		register,
@@ -29,9 +31,17 @@ export function LoginPage() {
 	const onSubmit: SubmitHandler<UserCredentials> = async (
 		userCredentials,
 	) => {
-		const user = await login(userCredentials);
+		const response = await login(userCredentials);
 
-		if (user === null) return;
+		if (!response) {
+			toast({ description: "Ha ocurrido un error inesperado" });
+			return;
+		}
+
+		if (!response.data) {
+			toast({ description: "El email o contraseña no son validos" });
+			return;
+		}
 
 		// Update user
 		mutate(user);

@@ -1,5 +1,5 @@
 import { Loader2, Send } from "lucide-react";
-import { useState } from "react";
+import { SubmitHandler, useForm } from "react-hook-form";
 import useSWR from "swr";
 
 import { MessagesList } from "@/components/messages-list";
@@ -14,32 +14,50 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from "@/components/ui/use-toast";
 import { getMessages, sendMessage } from "@/controllers/chatbot";
 import { getToken } from "@/controllers/users";
+import { MessageInput, messageInputSchema } from "@/shared/schema";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 export function ChatbotPage() {
 	const token = getToken();
-
+	const { toast } = useToast();
 	const { isLoading, data, mutate } = useSWR(
 		"messages",
 		async () => await getMessages({ token }),
 	);
 
-	const [message, setMessage] = useState("");
+	const {
+		register,
+		handleSubmit,
+		formState: { isSubmitting },
+		reset,
+	} = useForm<MessageInput>({
+		resolver: zodResolver(messageInputSchema),
+		values: {
+			text: "",
+		},
+	});
 
 	// Handle message submit.
-	const onSubmitMessage = async () => {
-		if (!message.trim().length) return;
-
+	const onSubmit: SubmitHandler<MessageInput> = async (message) => {
 		const response = await sendMessage({
 			token,
-			message: { text: message },
+			message,
 		});
 
-		setMessage("");
+		if (response === null || response === undefined) {
+			toast({
+				title: "Envío de mensaje",
+				description:
+					"Ha ocurrido un error al enviar mensaje, intenta más tarde",
+			});
+			return;
+		}
 
-		if (response === null || response === undefined) return;
-
+		// Reset input and add messages.
+		reset({ text: "" });
 		mutate((data ?? []).concat([response.question, response.answer]));
 	};
 
@@ -68,20 +86,23 @@ export function ChatbotPage() {
 				</CardContent>
 
 				<form
-					onSubmit={(event) => {
-						onSubmitMessage();
-						event.preventDefault();
-					}}
+					method="post"
+					onSubmit={handleSubmit(onSubmit)}
+					autoComplete="off"
 				>
 					<CardFooter className="flex gap-2 w-full">
 						<Input
 							placeholder="Ingresa una pregunta"
-							value={message}
-							onChange={(event) => setMessage(event.target.value)}
+							disabled={isSubmitting}
+							{...register("text")}
 						/>
 
 						<Button size="icon" type="submit">
-							<Send className="h-4 w-4" />
+							{isSubmitting ? (
+								<Loader2 className="h-4 w-4 animate-spin" />
+							) : (
+								<Send className="h-4 w-4" />
+							)}
 						</Button>
 					</CardFooter>
 				</form>

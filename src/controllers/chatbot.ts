@@ -22,8 +22,6 @@ export async function sendMessage({
 			body: JSON.stringify(message),
 		});
 
-		if (!response.ok) return null;
-
 		const parsedResponse = makeResponseSchema(
 			chatbotResponseSchema.optional(),
 		).safeParse(await response.json());
@@ -45,8 +43,6 @@ export async function getMessages({ token }: { token: string }) {
 				Authorization: `Bearer ${token}`,
 			},
 		});
-
-		if (!response.ok) return [];
 
 		const parsedResponse = makeResponseSchema(
 			z.array(messageSchema),
