@@ -4,6 +4,7 @@ import { RouterProvider, createBrowserRouter } from "react-router-dom";
 
 import { RequireAuth } from "./components/require-auth.tsx";
 import { LoginPage } from "./features/auth/pages/login-page.tsx";
+import { RegisterPage } from "./features/auth/pages/register-page.tsx";
 import { ChatbotPage } from "./features/chatbot/page.tsx";
 import { RootPage } from "./features/root/page.tsx";
 import { SplashPage } from "./features/splash/page.tsx";
@@ -21,6 +22,10 @@ const router = createBrowserRouter([
 			{
 				path: "login",
 				element: <LoginPage />,
+			},
+			{
+				path: "sign-up",
+				element: <RegisterPage />,
 			},
 			{
 				path: "chatbot",

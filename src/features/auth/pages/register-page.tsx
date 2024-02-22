@@ -8,12 +8,12 @@ import { TextField } from "@/components/text-field";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
-import { login } from "@/controllers/users";
+import { register as registerUser } from "@/controllers/users";
 import { useUser } from "@/hooks/use-user";
-import { UserCredentials, userCredentialsSchema } from "@/shared/schema";
+import { Register, registerSchema } from "@/shared/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-export function LoginPage() {
+export function RegisterPage() {
 	const { user, mutate, isLoading } = useUser();
 	const { toast } = useToast();
 
@@ -21,18 +21,17 @@ export function LoginPage() {
 		register,
 		handleSubmit,
 		formState: { errors, isSubmitting },
-	} = useForm<UserCredentials>({
-		resolver: zodResolver(userCredentialsSchema),
+	} = useForm<Register>({
+		resolver: zodResolver(registerSchema),
 		values: {
+			fullName: "",
 			email: "",
 			password: "",
 		},
 	});
 
-	const onSubmit: SubmitHandler<UserCredentials> = async (
-		userCredentials,
-	) => {
-		const response = await login(userCredentials);
+	const onSubmit: SubmitHandler<Register> = async (register) => {
+		const response = await registerUser(register);
 
 		if (!response) {
 			toast({ description: "Ha ocurrido un error inesperado" });
@@ -40,14 +39,28 @@ export function LoginPage() {
 		}
 
 		if (!response.data) {
-			toast({ description: "El email o contraseña no son validos" });
+			toast({
+				description:
+					response.status === 409
+						? "Email ya está tomado"
+						: "Ha ocurrido un error inesperado",
+			});
 			return;
 		}
 
-		toast({ description: "Ha iniciado sesión con éxito" });
+		toast({
+			description: "Ha creado su cuenta con éxito",
+		});
+
+		const { id, email, fullName, role } = response.data;
 
 		// Update user
-		mutate(response.data);
+		mutate({
+			email,
+			fullName,
+			id,
+			role,
+		});
 	};
 
 	if (isLoading) return <LoadingPage />;
@@ -56,7 +69,7 @@ export function LoginPage() {
 	if (user) return <Navigate to="/chatbot" />;
 
 	return (
-		<GuestLayout title="Inicio de Sesión">
+		<GuestLayout title="Crea tu cuenta">
 			<form
 				method="post"
 				onSubmit={handleSubmit(onSubmit)}
@@ -64,7 +77,21 @@ export function LoginPage() {
 			>
 				<div className="space-y-4">
 					<TextField
-						id="username"
+						id="full-name"
+						labelProps={{
+							children: "Nombre completo",
+						}}
+						inputProps={{
+							type: "text",
+							placeholder: "ej: John Doe",
+							autoComplete: "name",
+							...register("fullName"),
+						}}
+						errorMessage={errors.fullName?.message}
+					/>
+
+					<TextField
+						id="email"
 						labelProps={{
 							children: "Email",
 						}}
@@ -85,7 +112,7 @@ export function LoginPage() {
 						inputProps={{
 							type: "password",
 							placeholder: "ej: 12345678",
-							autoComplete: "current-password",
+							autoComplete: "new-password",
 							...register("password"),
 						}}
 						errorMessage={errors.password?.message}
@@ -97,15 +124,15 @@ export function LoginPage() {
 						<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 					) : null}
 
-					<span>Iniciar Sesión</span>
+					<span>Crear cuenta</span>
 				</Button>
 
 				<Separator />
 
 				<p className="text-muted-foreground text-sm text-center">
-					¿No tienes una cuenta?{" "}
-					<Link to="/sign-up" className="text-blue-500">
-						Registrate
+					¿Ya tienes una cuenta?{" "}
+					<Link to="/login" className="text-blue-500">
+						Inicia sesión
 					</Link>
 				</p>
 			</form>

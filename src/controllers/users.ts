@@ -5,7 +5,7 @@ import { makeResponseSchema } from "@/shared/utils";
 
 export async function register(register: Register) {
 	try {
-		const response = await fetch("http://localhost:3000/users/sign-in", {
+		const response = await fetch("http://localhost:3000/users/sign-up", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -13,15 +13,20 @@ export async function register(register: Register) {
 			body: JSON.stringify(register),
 		});
 
-		if (!response.ok) return null;
-
-		const parsedResponse = makeResponseSchema(userSchema).safeParse(
-			await response.json(),
-		);
+		const parsedResponse = makeResponseSchema(
+			userSchema.extend({
+				token: z.string(),
+			}),
+		).safeParse(await response.json());
 
 		if (!parsedResponse.success) return null;
 
-		return parsedResponse.data.data;
+		// Store the user token.
+		if (parsedResponse.data.data !== undefined) {
+			setToken(parsedResponse.data.data.token);
+		}
+
+		return parsedResponse.data;
 	} catch (error) {
 		console.log("There was an error", error);
 		return null;
