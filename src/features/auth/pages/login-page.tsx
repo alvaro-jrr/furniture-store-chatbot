@@ -1,0 +1,114 @@
+import { Loader2 } from "lucide-react";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { Link, Navigate } from "react-router-dom";
+
+import GuestLayout from "@/components/guest-layout";
+import { LoadingPage } from "@/components/loading-page";
+import { TextField } from "@/components/text-field";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/components/ui/use-toast";
+import { login } from "@/controllers/users";
+import { useUser } from "@/hooks/use-user";
+import { UserCredentials, userCredentialsSchema } from "@/shared/schema";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+export function LoginPage() {
+	const { user, mutate, isLoading } = useUser();
+	const { toast } = useToast();
+
+	const {
+		register,
+		handleSubmit,
+		formState: { errors, isSubmitting },
+	} = useForm<UserCredentials>({
+		resolver: zodResolver(userCredentialsSchema),
+		values: {
+			email: "",
+			password: "",
+		},
+	});
+
+	const onSubmit: SubmitHandler<UserCredentials> = async (
+		userCredentials,
+	) => {
+		const response = await login(userCredentials);
+
+		if (!response) {
+			toast({ description: "Ha ocurrido un error inesperado" });
+			return;
+		}
+
+		if (!response.data) {
+			toast({ description: "El email o contraseña no son validos" });
+			return;
+		}
+
+		toast({ description: "Ha iniciado sesión con éxito" });
+
+		// Update user
+		mutate(response.data);
+	};
+
+	if (isLoading) return <LoadingPage />;
+
+	// Go to chatbot.
+	if (user) return <Navigate to="/chatbot" />;
+
+	return (
+		<GuestLayout title="Inicio de Sesión">
+			<form
+				method="post"
+				onSubmit={handleSubmit(onSubmit)}
+				className="space-y-6"
+			>
+				<div className="space-y-4">
+					<TextField
+						id="username"
+						labelProps={{
+							children: "Email",
+						}}
+						inputProps={{
+							type: "text",
+							placeholder: "ej: johndoe@gmail.com",
+							autoComplete: "email",
+							...register("email"),
+						}}
+						errorMessage={errors.email?.message}
+					/>
+
+					<TextField
+						id="password"
+						labelProps={{
+							children: "Contraseña",
+						}}
+						inputProps={{
+							type: "password",
+							placeholder: "ej: 12345678",
+							autoComplete: "current-password",
+							...register("password"),
+						}}
+						errorMessage={errors.password?.message}
+					/>
+				</div>
+
+				<Button disabled={isSubmitting} className="w-full">
+					{isSubmitting ? (
+						<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+					) : null}
+
+					<span>Iniciar Sesión</span>
+				</Button>
+
+				<Separator />
+
+				<p className="text-muted-foreground text-sm text-center">
+					¿No tienes una cuenta?{" "}
+					<Link to="/sign-up" className="text-blue-500">
+						Registrate
+					</Link>
+				</p>
+			</form>
+		</GuestLayout>
+	);
+}
