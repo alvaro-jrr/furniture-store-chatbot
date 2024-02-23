@@ -74,6 +74,8 @@ export async function logout({ token }: { token: string }) {
 			},
 		});
 
+		if (response.ok) removeToken();
+
 		return response.ok;
 	} catch (error) {
 		console.log("There was an error", error);
@@ -109,4 +111,8 @@ export function getToken() {
 
 export function setToken(token: string) {
 	localStorage.setItem("token", token);
+}
+
+export function removeToken() {
+	localStorage.removeItem("token");
 }

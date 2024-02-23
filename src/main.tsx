@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 
+import { AuthLayout } from "./components/auth-layout.tsx";
 import { RequireAuth } from "./components/require-auth.tsx";
 import { LoginPage } from "./features/auth/pages/login-page.tsx";
 import { RegisterPage } from "./features/auth/pages/register-page.tsx";
@@ -28,12 +29,17 @@ const router = createBrowserRouter([
 				element: <RegisterPage />,
 			},
 			{
-				path: "chatbot",
-				element: (
-					<RequireAuth>
-						<ChatbotPage />
-					</RequireAuth>
-				),
+				element: <AuthLayout />,
+				children: [
+					{
+						path: "chatbot",
+						element: (
+							<RequireAuth>
+								<ChatbotPage />
+							</RequireAuth>
+						),
+					},
+				],
 			},
 		],
 	},

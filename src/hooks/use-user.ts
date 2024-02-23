@@ -11,9 +11,12 @@ export const useUser = () => {
 
 	// Logs out the user.
 	const logoutUser = async () => {
-		await logout({ token: getToken() });
-		mutate(null);
-		return navigate("/login");
+		const isLogout = await logout({ token: getToken() });
+
+		if (isLogout) {
+			mutate(null);
+			return navigate("/login");
+		}
 	};
 
 	return {

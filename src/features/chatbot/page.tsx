@@ -3,15 +3,8 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import useSWR from "swr";
 
 import { MessagesList } from "@/components/messages-list";
+import { PageLayout } from "@/components/page-layout";
 import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardFooter,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/use-toast";
@@ -47,7 +40,7 @@ export function ChatbotPage() {
 			message,
 		});
 
-		if (response === null || response === undefined) {
+		if (!response) {
 			toast({
 				title: "Envío de mensaje",
 				description:
@@ -62,18 +55,15 @@ export function ChatbotPage() {
 	};
 
 	return (
-		<div className="container min-h-screen flex p-6">
-			<Card className="flex flex-col flex-1">
-				<CardHeader>
-					<CardTitle className="text-2xl">Chat</CardTitle>
-
-					<CardDescription>
-						Obtén información de la mueblería a través de nuestro
-						chatbot.
-					</CardDescription>
-				</CardHeader>
-
-				<CardContent className="flex-1">
+		<PageLayout
+			headerProps={{
+				title: "Chatbot",
+				description:
+					"Obtén información de la mueblería a través de nuestro chatbot",
+			}}
+		>
+			<div className="flex flex-col flex-1">
+				<div className="flex-1">
 					{isLoading ? (
 						<div className="h-full w-full grid place-content-center">
 							<Loader2 className="h-4 w-4 animate-spin" />
@@ -83,30 +73,29 @@ export function ChatbotPage() {
 							<MessagesList messages={data ?? []} />
 						</ScrollArea>
 					)}
-				</CardContent>
+				</div>
 
 				<form
 					method="post"
 					onSubmit={handleSubmit(onSubmit)}
 					autoComplete="off"
+					className="flex gap-2 w-full"
 				>
-					<CardFooter className="flex gap-2 w-full">
-						<Input
-							placeholder="Ingresa una pregunta"
-							disabled={isSubmitting}
-							{...register("text")}
-						/>
+					<Input
+						placeholder="Ingresa una pregunta"
+						disabled={isSubmitting}
+						{...register("text")}
+					/>
 
-						<Button size="icon" type="submit">
-							{isSubmitting ? (
-								<Loader2 className="h-4 w-4 animate-spin" />
-							) : (
-								<Send className="h-4 w-4" />
-							)}
-						</Button>
-					</CardFooter>
+					<Button size="icon" type="submit">
+						{isSubmitting ? (
+							<Loader2 className="h-4 w-4 animate-spin" />
+						) : (
+							<Send className="h-4 w-4" />
+						)}
+					</Button>
 				</form>
-			</Card>
-		</div>
+			</div>
+		</PageLayout>
 	);
 }
